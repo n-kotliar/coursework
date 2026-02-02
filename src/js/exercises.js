@@ -11,6 +11,7 @@ import {
   setCurrentFilter,
   setPage,
   filter,
+  setKeyword, 
 } from './api.js';
 
 const refs = {
@@ -19,6 +20,7 @@ const refs = {
   musclesBtn: document.querySelector('.muscles-btn'),
   exercisesTitle: document.querySelector('.exercises-title'),
   searchForm: document.querySelector('.search-form'),
+  searchInput: document.querySelector('.search-form input'),
   loadMoreBtn: document.querySelector('.load-more-btn'),
   quoteContainer: document.querySelector('.quote'),
   pagination: document.querySelector('.pagination'),
@@ -27,13 +29,17 @@ const refs = {
 
 displayQuote(refs.quoteContainer);
 fetchFilters();
-
 refs.musclesBtn.classList.add('active-btn');
 
 refs.filters.addEventListener('click', pressFilterBtn);
 refs.exercises.addEventListener('click', loadExercises);
 refs.searchForm.addEventListener('input', onLiveSearch);
+
+refs.searchForm.addEventListener('submit', e => e.preventDefault());
+
 refs.loadMoreBtn?.addEventListener('click', loadMore);
+refs.pagination?.addEventListener('click', onPaginationClick);
+refs.exercises.addEventListener('click', onStartClick);
 
 async function fetchFilters(reset = true) {
   if (reset) refs.exercises.innerHTML = '';
@@ -71,13 +77,16 @@ function pressFilterBtn(event) {
 
   if (event.target.classList.contains('muscles-btn'))
     setCurrentFilter('Muscles');
-  else if (event.target.classList.contains('bodyparts-btn'))
+  if (event.target.classList.contains('bodyparts-btn'))
     setCurrentFilter('Body parts');
-  else if (event.target.classList.contains('equipment-btn'))
+  if (event.target.classList.contains('equipment-btn'))
     setCurrentFilter('Equipment');
 
   refs.exercisesTitle.textContent = 'Exercises';
   refs.searchForm.style.display = 'none';
+  setKeyword('');
+  setPage(1);
+
   fetchFilters(true);
 }
 
@@ -91,13 +100,18 @@ async function loadExercises(event) {
 
   setFilter(filterEl.textContent);
   setName(nameEl.textContent.toLowerCase());
+  setKeyword('');
 
-  refs.exercisesTitle.innerHTML = `Exercises / <span>${capitalize(nameEl.textContent)}</span>`;
+  refs.exercisesTitle.innerHTML = `Exercises / <span>${capitalize(
+    nameEl.textContent
+  )}</span>`;
+
   refs.searchForm.style.display = 'block';
+  refs.searchInput.value = '';
   setPage(1);
   refs.exercises.innerHTML = '';
 
-  await fetchExercises();
+  await fetchExercises(true);
 }
 
 async function fetchExercises(reset = true) {
@@ -108,15 +122,12 @@ async function fetchExercises(reset = true) {
 
   localResponse.length = 0;
   localResponse.push(...data.results);
+
   makeExercisesCards(data.results);
   renderPagination(data.totalPages);
 }
 
 function makeExercisesCards(items) {
-  refs.exercises.innerHTML = '';
-  localResponse.length = 0;
-  localResponse.push(...items);
-
   const markup = `
     <ul class="exercises-cards">
       ${items
@@ -133,7 +144,7 @@ function makeExercisesCards(items) {
                 </svg>
               </span>
             </div>
-            <button name="start" data-action="start" data-id="${_id}" class="details-link">
+            <button data-action="start" data-id="${_id}" class="details-link">
               Start
               <svg class="arrow-icon" width="16" height="16">
                 <use href="/coursework/symbol-defs.svg#icon-arrow"></use>
@@ -141,7 +152,7 @@ function makeExercisesCards(items) {
             </button>
           </div>
           <div class="exercise-header">
-            <svg class="icon-man" fill="white" width="24" height="24">
+            <svg class="icon-man" width="24" height="24">
               <use href="/coursework/symbol-defs.svg#icon-run"></use>
             </svg>
             <h2 class="exercise-name">${capitalize(name)}</h2>
@@ -158,36 +169,60 @@ function makeExercisesCards(items) {
     </ul>
   `;
 
-  refs.exercises.insertAdjacentHTML('beforeend', markup);
+  refs.exercises.innerHTML = markup;
 }
 
 function onLiveSearch(event) {
-  keyWord = event.target.value.trim().toLowerCase();
+  const value = event.target.value.trim().toLowerCase();
+  setKeyword(value);
   setPage(1);
   refs.exercises.innerHTML = '';
   fetchExercises(true);
 }
 
+function onPaginationClick(e) {
+  const btn = e.target.closest('.pagination-btn');
+  if (!btn) return;
+
+  const selectedPage = Number(btn.dataset.page);
+  if (selectedPage === page) return;
+
+  setPage(selectedPage);
+  refs.exercises.innerHTML = '';
+  filter ? fetchExercises(false) : fetchFilters(false);
+}
+
+function onStartClick(event) {
+  const btn = event.target.closest('[data-action="start"]');
+  if (!btn) return;
+
+  const exercise = localResponse.find(el => el._id === btn.dataset.id);
+  handlerStartBtn(exercise);
+}
+
 function showNoResults() {
-  refs.exercises.innerHTML = `<p class="no-results-paragraph">Unfortunately, <span>no results</span> were found.</p>`;
+  refs.exercises.innerHTML = `
+    <p class="no-results-paragraph">
+      Unfortunately, <span>no results</span> were found.
+    </p>
+  `;
   refs.loadMoreBtn?.style.setProperty('display', 'none');
-  if (refs.pagination) refs.pagination.innerHTML = '';
+  refs.pagination && (refs.pagination.innerHTML = '');
 }
 
 function capitalize(str) {
-  const clean = str.trim();
-  return clean[0].toUpperCase() + clean.slice(1);
+  if (!str) return '';
+  return str[0].toUpperCase() + str.slice(1);
 }
 
 function renderPagination(totalPages) {
-  if (!refs.pagination) return;
-  if (totalPages <= 1) {
+  if (!refs.pagination || totalPages <= 1) {
     refs.pagination.innerHTML = '';
     return;
   }
 
   let html = '';
-  const createPageBtn = p => `
+  const createBtn = p => `
     <li>
       <button class="pagination-btn ${p === page ? 'active' : ''}" data-page="${p}">
         ${p}
@@ -202,36 +237,16 @@ function renderPagination(totalPages) {
   if (page === totalPages) start = Math.max(1, totalPages - 2);
 
   if (start > 1) {
-    html += createPageBtn(1);
-    if (start > 2 && totalPages > 4) html += `<li class="dots">...</li>`;
+    html += createBtn(1);
+    if (start > 2) html += `<li class="dots">...</li>`;
   }
 
-  for (let i = start; i <= end; i++) html += createPageBtn(i);
+  for (let i = start; i <= end; i++) html += createBtn(i);
 
   if (end < totalPages) {
-    if (end < totalPages - 1 && totalPages > 4)
-      html += `<li class="dots">...</li>`;
-    html += createPageBtn(totalPages);
+    if (end < totalPages - 1) html += `<li class="dots">...</li>`;
+    html += createBtn(totalPages);
   }
 
   refs.pagination.innerHTML = html;
 }
-
-refs.pagination?.addEventListener('click', e => {
-  const btn = e.target.closest('.pagination-btn');
-  if (!btn) return;
-  const selectedPage = Number(btn.dataset.page);
-  if (selectedPage === page) return;
-
-  setPage(selectedPage);
-  refs.exercises.innerHTML = '';
-  filter ? fetchExercises(false) : fetchFilters(false);
-});
-
-refs.exercises.addEventListener('click', event => {
-  const btn = event.target.closest('[data-action="start"]');
-  if (!btn) return;
-
-  const exercise = localResponse.find(el => el._id === btn.dataset.id);
-  handlerStartBtn(exercise);
-});

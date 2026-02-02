@@ -1,28 +1,29 @@
 export const LS_FAV = 'favourites_exercises';
 
+export const getFav = () => {
+  try {
+    return JSON.parse(localStorage.getItem(LS_FAV)) || [];
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+};
+
 export const setFav = arr => {
   localStorage.setItem(LS_FAV, JSON.stringify(arr));
 };
 
-export const getFav = key => {
-  try {
-    return JSON.parse(localStorage.getItem(key));
-  } catch (err) {
-    console.log(err.message);
-  }
+export const addToFav = exercise => {
+  const favs = getFav();
+  if (favs.some(item => item._id === exercise._id)) return;
+  favs.push(exercise);
+  setFav(favs);
 };
 
 export const removeFromFav = id => {
-  const filteredArr = getFav(LS_FAV).filter(obj => obj._id !== id);
-  localStorage.removeItem(LS_FAV);
-  localStorage.setItem(LS_FAV, JSON.stringify(filteredArr));
+  const favs = getFav().filter(item => item._id !== id);
+  setFav(favs);
 };
-
-const QUOTE_KEY = 'todays_uote';
-const QUOTE_TIME_KEY = 'quote_time';
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
-let cachedQuote = null;
 
 async function getQuote() {
   if (cachedQuote) return cachedQuote;
@@ -35,7 +36,7 @@ async function getQuote() {
     storedTime &&
     Date.now() - Number(storedTime) < ONE_DAY_MS
   ) {
-    cachedQuote = JSON.parse(storedQuote); 
+    cachedQuote = JSON.parse(storedQuote);
     return cachedQuote;
   }
 
@@ -45,13 +46,13 @@ async function getQuote() {
 
     localStorage.setItem(QUOTE_KEY, JSON.stringify(data));
     localStorage.setItem(QUOTE_TIME_KEY, Date.now().toString());
-    cachedQuote = data; 
+    cachedQuote = data;
 
     return data;
   } catch (err) {
     console.error('Error fetching quote:', err);
     if (storedQuote) {
-      cachedQuote = JSON.parse(storedQuote); 
+      cachedQuote = JSON.parse(storedQuote);
       return cachedQuote;
     }
     return { quote: 'No quote available', author: '' };
@@ -76,4 +77,3 @@ export const displayQuote = async quoteContainer => {
   const { quote, author } = await getQuote();
   quoteContainer.innerHTML = renderQuoteHTML(quote, author);
 };
-

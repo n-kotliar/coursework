@@ -3,8 +3,8 @@ let limit = window.innerWidth < 768 ? 9 : 12;
 let limitx = window.innerWidth < 768 ? 8 : 10;
 
 let currentFilter = 'Muscles';
-let searchQuery = 'Muscles';
-let keyWord = '';
+let searchQuery = ''; 
+let keyWord = ''; 
 let filter = '';
 let name = '';
 
@@ -38,16 +38,26 @@ export function setName(value) {
   name = value;
 }
 
+export function setKeyword(value) {
+  keyWord = value;
+}
+
+export function setSearchQuery(value) {
+  searchQuery = value;
+}
+
 export async function fetchFilterss(reset = true) {
   if (reset) page = 1;
 
   let url = `https://your-energy.b.goit.study/api/filters?filter=${currentFilter}&page=${page}&limit=${limit}`;
-  if (searchQuery.trim()) url += `&name=${searchQuery}`;
+
+  if (searchQuery.trim()) {
+    url += `&name=${searchQuery}`;
+  }
 
   const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch filters');
-  const data = await res.json();
-  return data;
+  return await res.json();
 }
 
 export async function fetchExercisesAPI(reset = true) {
@@ -66,8 +76,7 @@ export async function fetchExercisesAPI(reset = true) {
 
   const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch exercises');
-  const data = await res.json();
-  return data;
+  return await res.json();
 }
 
 export async function postSubscriptions(email) {
@@ -82,18 +91,21 @@ export async function postSubscriptions(email) {
 
   if (response.status === 409) throw new Error('EMAIL_EXISTS');
   if (!response.ok) throw new Error('REQUEST_FAILED');
+
   return await response.json();
 }
 
 export async function addExerciseRatingById(id, { email, rate, comment }) {
   rate = Number(rate);
-  const url = `https://your-energy.b.goit.study/api/exercises/${id}/rating`;
 
-  const response = await fetch(url, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, rate, review: comment }),
-  });
+  const response = await fetch(
+    `https://your-energy.b.goit.study/api/exercises/${id}/rating`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, rate, review: comment }),
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response.json();
