@@ -25,8 +25,12 @@ export const removeFromFav = id => {
   setFav(favs);
 };
 
+let cachedQuote = null;
+let quotePromise = null;
+
 async function getQuote() {
   if (cachedQuote) return cachedQuote;
+  if (quotePromise) return quotePromise;
 
   const storedQuote = localStorage.getItem(QUOTE_KEY);
   const storedTime = localStorage.getItem(QUOTE_TIME_KEY);
@@ -40,24 +44,30 @@ async function getQuote() {
     return cachedQuote;
   }
 
-  try {
-    const res = await fetch('https://your-energy.b.goit.study/api/quote');
-    const data = await res.json();
+  quotePromise = fetch('https://your-energy.b.goit.study/api/quote')
+    .then(res => res.json())
+    .then(data => {
+      cachedQuote = data;
+      localStorage.setItem(QUOTE_KEY, JSON.stringify(data));
+      localStorage.setItem(QUOTE_TIME_KEY, Date.now().toString());
+      return data;
+    })
+    .catch(err => {
+      console.error('Error fetching quote:', err);
+      if (storedQuote) {
+        cachedQuote = JSON.parse(storedQuote);
+        return cachedQuote;
+      }
+      return { quote: 'No quote available', author: '' };
+    })
+    .finally(() => {
+      quotePromise = null;
+    });
 
-    localStorage.setItem(QUOTE_KEY, JSON.stringify(data));
-    localStorage.setItem(QUOTE_TIME_KEY, Date.now().toString());
-    cachedQuote = data;
-
-    return data;
-  } catch (err) {
-    console.error('Error fetching quote:', err);
-    if (storedQuote) {
-      cachedQuote = JSON.parse(storedQuote);
-      return cachedQuote;
-    }
-    return { quote: 'No quote available', author: '' };
-  }
+  return quotePromise;
 }
+
+
 
 const renderQuoteHTML = (quote, author) => `
   <svg width="32" height="32" class="quote-text-icon">
