@@ -21,9 +21,14 @@ export const addToFav = exercise => {
 };
 
 export const removeFromFav = id => {
-  const favs = getFav().filter(item => item._id !== id);
-  setFav(favs);
+  const updatedFavs = getFav().filter(item => item._id !== id);
+  setFav(updatedFavs);
 };
+
+
+const QUOTE_KEY = 'todays_quote';
+const QUOTE_TIME_KEY = 'quote_time';
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 let cachedQuote = null;
 let quotePromise = null;
@@ -66,8 +71,6 @@ async function getQuote() {
 
   return quotePromise;
 }
-
-
 
 const renderQuoteHTML = (quote, author) => `
   <svg width="32" height="32" class="quote-text-icon">
