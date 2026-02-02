@@ -33,9 +33,7 @@ refs.musclesBtn.classList.add('active-btn');
 
 refs.filters.addEventListener('click', pressFilterBtn);
 refs.exercises.addEventListener('click', loadExercises);
-refs.searchForm.addEventListener('input', onLiveSearch);
-
-refs.searchForm.addEventListener('submit', e => e.preventDefault());
+refs.searchForm.addEventListener('submit', onSearchSubmit);
 
 refs.loadMoreBtn?.addEventListener('click', loadMore);
 refs.pagination?.addEventListener('click', onPaginationClick);
@@ -172,13 +170,17 @@ function makeExercisesCards(items) {
   refs.exercises.innerHTML = markup;
 }
 
-function onLiveSearch(event) {
-  const value = event.target.value.trim().toLowerCase();
+function onSearchSubmit(e) {
+  e.preventDefault();
+
+  const value = refs.searchInput.value.trim().toLowerCase();
   setKeyword(value);
   setPage(1);
+
   refs.exercises.innerHTML = '';
   fetchExercises(true);
 }
+
 
 function onPaginationClick(e) {
   const btn = e.target.closest('.pagination-btn');
