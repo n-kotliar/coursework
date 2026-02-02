@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=/js_university_projectNew/",
+    "build": "vite build --base=/coursework/",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist"
   },
