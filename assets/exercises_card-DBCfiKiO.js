@@ -151,5 +151,5 @@ import{n as v}from"./vendor-Bv82aGDC.js";(function(){const t=document.createElem
           </svg>`,d=!1):(g.push(e),Y(g),o.innerHTML=`Remove
           <svg class="heart-icon" width="20px" height="20px">
             <use href="/coursework/symbol-defs.svg#icon-heart"></use>
-          </svg>`,d=!0),p()}),document.getElementById("close-card").addEventListener("click",y),m.addEventListener("click",a=>{a.target===m&&y()}),document.querySelector(".give-rating-btn").addEventListener("click",()=>{y(),ve(e._id,J)})}function W(e){e.key==="Escape"&&y()}function y(){m.classList.remove("card-is-open"),document.body.classList.remove("not-scrollable"),document.removeEventListener("keydown",W)}export{xe as a,Ee as b,we as c,V as d,be as e,Le as f,ke as g,D as h,de as l,b as p,Se as s};
-//# sourceMappingURL=exercises_card-CMNglRSv.js.map
+          </svg>`,d=!0),p()}),document.getElementById("close-card").addEventListener("click",y),m.addEventListener("click",a=>{a.target===m&&y()}),document.querySelector(".give-rating-btn").addEventListener("click",()=>{y(),ve(e._id,J)})}function W(e){e.key==="Escape"&&y()}function y(){m.classList.remove("card-is-open"),document.body.classList.remove("not-scrollable"),document.removeEventListener("keydown",W)}export{xe as a,Ee as b,we as c,V as d,P as e,Le as f,be as g,D as h,ke as i,de as l,b as p,Se as s};
+//# sourceMappingURL=exercises_card-DBCfiKiO.js.map
