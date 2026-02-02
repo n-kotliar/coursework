@@ -55,7 +55,6 @@
   left: 0;
   bottom: -10px;
   opacity: 0;
-  transition: 0.5s;
 }
 
 .exercises-section .filter button:hover::before {
@@ -225,7 +224,6 @@
 }
 .exercises-section .exercise-image {
   filter: brightness(80%);
-  transition: transform 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .exercises-section .exercise-info {
