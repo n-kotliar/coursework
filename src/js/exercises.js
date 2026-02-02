@@ -10,6 +10,7 @@ import {
   setName,
   setCurrentFilter,
   setPage,
+  filter,
 } from './api.js';
 
 const refs = {
@@ -21,7 +22,7 @@ const refs = {
   loadMoreBtn: document.querySelector('.load-more-btn'),
   quoteContainer: document.querySelector('.quote'),
   pagination: document.querySelector('.pagination'),
-  exercises: document.querySelector('.exercises-div'),
+  exercises: document.querySelector('.exercises'),
 };
 
 displayQuote(refs.quoteContainer);
